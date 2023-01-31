@@ -10,7 +10,7 @@ To display the UI, use the url: localhost:8000/docs
 """
 
 """
-API Version - 1.0.1
+API Version - 1.0.2
 """
 
 db = SessionLocal()
@@ -126,7 +126,7 @@ def get_book_borrowed_30():
     borrow_id_list = [record.borrowers_id for record in dates_borrowed]
     borrowRecordDetails_list =  [db.query(models.BorrowersRecordDetails).filter(models.BorrowersRecordDetails.borrowers_id == borrow_id).first() for borrow_id in borrow_id_list]
     return [db.query(models.Book).filter(models.Book.book_id == n.book_id).first() for n in borrowRecordDetails_list]
-    
+
 #-------------------------------------------------->
 
 
