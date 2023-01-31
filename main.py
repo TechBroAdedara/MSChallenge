@@ -113,18 +113,19 @@ So we get the information for each book borrowed by linking us to the Book table
 """
 @app.get('/Books/Borrowed/Last30Days')
 def get_book_borrowed_30():
-    """today = datetime.today()
+
+    def _check(dateborrowed):
+        return True if (today - dateborrowed).days < 30 else False
+        # if (today - dateborrowed).days < 30:
+        #     return True
+        # return False
+
+    today = datetime.today()
     borrowRecordJson = db.query(models.BorrowersRecords).all()
-    dates_borrowed = [borrowRecordJson[i].borrowers_dateborrowed for i in range(0, len(borrowRecordJson))
-                             if (today - (borrowRecordJson[i].borrowers_dateborrowed))/86400 < 30]
-    diff = (today - (borrowRecordJson[0].borrowers_dateborrowed))/86400
-    return float(diff)
-    #  return (today - dates_borrowed[0])/86400
-"""
-
-
-    
-
+    dates_borrowed = [record for record in borrowRecordJson if _check(record.borrowers_dateborrowed)]
+    borrow_id_list = [record.borrowers_id for record in dates_borrowed]
+    borrowRecordDetails_list =  [db.query(models.BorrowersRecordDetails).filter(models.BorrowersRecordDetails.borrowers_id == borrow_id).first() for borrow_id in borrow_id_list]
+    return [db.query(models.Book).filter(models.Book.book_id == n.book_id).first() for n in borrowRecordDetails_list]
     
 #-------------------------------------------------->
 
