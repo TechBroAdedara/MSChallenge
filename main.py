@@ -1,21 +1,22 @@
 from fastapi import FastAPI, HTTPException
-from typing import Optional, List
 from schema import Book, BookReturnRecordDetails, BookReturnRecords, BorrowersRecords, BorrowersRecordDetails, LibraryStaff, Members
 from database import SessionLocal
 import models
 from datetime import datetime, date, timedelta
 
+"""
+A RESTful api project by Adedara Adeloro
+To display the UI, use the url: localhost:8000/docs
+"""
 
-
+"""
+API Version - 1.0.1
+"""
 
 db = SessionLocal()
 app = FastAPI()
 
-
-@app.get('/Test')
-def test(ID):
-    testing = db.query(models.BorrowersRecords).filter(models.BorrowersRecords.staff_id == ID).all()
-    return testing    
+#-------------------------------------------------->
 # End point to GET a specific book by its ID
 @app.get('/Books/{books_ID}')
 def get_a_book(book_ID):
@@ -52,6 +53,7 @@ def delete_book(book_ID:int):
 
     return book_to_delete
 
+#-------------------------------------------------->
 #Endpoint to GET ALL books, by directly calling the book table
 @app.get('/Books', status_code=200)
 def get_all_books():
@@ -78,6 +80,7 @@ def create_book(book:Book):
     db.add(new_book)
     db.commit
     return new_book
+#-------------------------------------------------->
 
 
 # Endpoint to get a specific book by its AUTHOR
@@ -110,7 +113,19 @@ So we get the information for each book borrowed by linking us to the Book table
 """
 @app.get('/Books/Borrowed/Last30Days')
 def get_book_borrowed_30():
-    pass
+    """today = datetime.today()
+    borrowRecordJson = db.query(models.BorrowersRecords).all()
+    dates_borrowed = [borrowRecordJson[i].borrowers_dateborrowed for i in range(0, len(borrowRecordJson))
+                             if (today - (borrowRecordJson[i].borrowers_dateborrowed))/86400 < 30]
+    diff = (today - (borrowRecordJson[0].borrowers_dateborrowed))/86400
+    return float(diff)
+    #  return (today - dates_borrowed[0])/86400
+"""
+
+
+    
+
+    
 #-------------------------------------------------->
 
 
@@ -230,7 +245,7 @@ def delete_borrowed(ID):
 
 #For Borrowed (WITHOUT ID)
 @app.get('/Borrowed/')
-def get_borrowed_noID():
+def get_all_borrowed():
     return db.query(models.BorrowersRecords).all()
 
 @app.post('/Borrowed/')
@@ -254,11 +269,11 @@ def create_borrowed(new_borrow:BorrowersRecords):
 #For Books Returned (WITH ID)
 @app.get('/Returned/{ID}')
 def get_returned(ID):
-    return db.query(models.BookReturnRecords).all()
+    return db.query(models.BookReturnRecords).filter(models.BookReturnRecords.return_id == ID).first()
 
 @app.put('/Returned/{ID}')
-def update_returned(ID, returned:BookReturnRecordDetails):
-        returned_to_update = db.query(models.BorrowersRecords).filter(models.BorrowersRecords.borrowers_id == ID).first()
+def update_returned(ID, returned:BookReturnRecords):
+        returned_to_update = db.query(models.BookReturnRecords).filter(models.BookReturnRecords.return_id == ID).first()
 
         returned_to_update.return_id = returned.return_id
         returned_to_update.borrowers_id = returned.borrowers_id
@@ -289,10 +304,9 @@ def get_all_returned():
 @app.post('/Returned/')
 def create_returned(new_returned:BookReturnRecords):
     new_returned = models.BookReturnRecords(
-        detail_id= new_returned.detail_id,
         return_id= new_returned.return_id,
-        book_id= new_returned.book_id,
-        details_numberofcopies= new_returned.details_numberofcopies,
+        borrowers_id= new_returned.borrowers_id,
+        return_datereturned= new_returned.return_datereturned,
     )
 
     db_returned_book = db.query(models.BookReturnRecords).filter(models.BookReturnRecords.return_id == new_returned).first()
